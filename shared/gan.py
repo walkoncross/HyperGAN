@@ -28,6 +28,9 @@ def generator(config, inputs, reuse=False):
             z_dim_random_uniform = None
 
         if(config['g_project'] == 'linear'):
+            print(',y,',inputs)
+            if(config['dtype'] != tf.float32):
+                inputs = [tf.cast(i, config['dtype']) for i in inputs]
             result = tf.concat(1, inputs)
             result = linear(result, z_proj_dims*primes[0]*primes[1], scope="g_lin_proj")
         elif(config['g_project']=='tiled'):
@@ -163,11 +166,19 @@ def discriminator(config, x, f,z,g,gz):
         class_logits = tf.concat(1, [positive_class_logits, tf.expand_dims(generated_class_logits, 1)])
         """
 
+        if(config['dtype']!=tf.float32):
+            positive_class_logits = tf.cast(positive_class_logits, dtype=tf.float32)
         mx = tf.reduce_max(positive_class_logits, 1, keep_dims=True)
+        if(config['dtype']!=tf.float32):
+            positive_class_logits = tf.cast(positive_class_logits, dtype=config['dtype'])
+            mx = tf.cast(mx, dtype=config['dtype'])
         safe_pos_class_logits = positive_class_logits - mx
 
         gan_logits = tf.log(tf.reduce_sum(tf.exp(safe_pos_class_logits), 1)) + tf.squeeze(mx) - generated_class_logits
         assert len(gan_logits.get_shape()) == 1
+
+        if(config['dtype']!=tf.float32):
+            gan_logits = tf.cast(gan_logits, dtype=config['dtype'])
 
         return class_logits, gan_logits
     num_classes = config['y_dims']+1
@@ -246,7 +257,10 @@ def z_from_f(config, f, categories):
     n_z = int(config['z_dim'])
     n_c = sum(config['categories'])
 
-    result = f
+    if(config['dtype'] != tf.float32):
+        result = tf.cast(f, config['dtype'])
+    else:
+        result = f
     print("RESULT IS", result)
     if(config['f_skip_fc']):
         pass
@@ -556,7 +570,7 @@ def create(config, x,y,f):
 
 
     if(config['latent_loss']):
-        mse_loss = tf.reduce_max(tf.square(x-encoded))
+        mse_loss = None#tf.reduce_max(tf.square(x-encoded))
     else:
         mse_loss = None
     if config['mse_loss']:

@@ -11,7 +11,7 @@ def build_labels(dirs):
     labels[dir.split('/')[-1]]=next_id
     next_id+=1
   return labels,next_id
-def labelled_image_tensors_from_directory(directory, batch_size, channels=3, format='jpg', width=64, height=64, crop=True):
+def labelled_image_tensors_from_directory(directory, batch_size, dtype ,channels=3, format='jpg', width=64, height=64, crop=True):
   filenames = glob.glob(directory+"/**/*."+format)
   labels,total_labels = build_labels(sorted(glob.glob(directory+"/*")))
   num_examples_per_epoch = 30000
@@ -39,7 +39,7 @@ def labelled_image_tensors_from_directory(directory, batch_size, channels=3, for
   else:
       print("Failed to load format", format)
   #img = tf.zeros([64,64,3])
-  img = tf.cast(img, tf.float32)
+  img = tf.cast(img, dtype)
   reshaped_image = tf.identity(img)
   tf.Tensor.set_shape(reshaped_image, [None, None, None])
 
