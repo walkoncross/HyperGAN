@@ -65,6 +65,25 @@ def generator(config, inputs, reuse=False):
                 #print("END SIZE IS", result)
                 #stride = x_dims[0]//int(result.get_shape()[1])
                 #result = build_deconv_tower(result, [output_channels], x_dims, stride+1, 'g_conv_2', config['g_activation'], config['g_batch_norm'], config['g_batch_norm_last_layer'], config['batch_size'], config['g_last_layer_stddev'], stride=stride)
+            elif(config['g_strategy'] == 'wide-resnet-lapgan'):
+                widenings = 2
+                stride = 8
+                gs = []
+                for i in range(widenings):
+                    rs = [int(s) for s in result.get_shape()]
+                    g = tf.slice(result, [0,0,0,0], [batch_size, rs[1], rs[2], config['channels']])
+                    g = tf.image.resize_images(g, x_dims[1], x_dims[0], 1, True)
+                    print("_____G", g)
+                    gs.append(config['g_last_layer'](g))
+                    print("SIZE IS" ,result)
+
+                    if(i==widenings-1):
+                        result = residual_block_deconv(result, activation, batch_size, 'deconv', 'g_layers_d_'+str(i), output_channels=config['channels'], stride=stride)
+                        result = residual_block_deconv(result, activation, batch_size, 'identity', 'g_layers_i_'+str(i))
+                    else:
+                        result = residual_block_deconv(result, activation, batch_size, 'deconv', 'g_layers_d_'+str(i), stride=stride)
+                        result = residual_block_deconv(result, activation, batch_size, 'identity', 'g_layers_i_'+str(i))
+
             elif(config['g_strategy'] == 'huge_deconv'):
                 result = batch_norm(config['batch_size'], name='g_bn_lin_proj')(result)
                 result = config['g_activation'](result)
@@ -89,7 +108,10 @@ def generator(config, inputs, reuse=False):
         elif(config['g_last_layer']):
             result = config['g_last_layer'](result)
 
-        print("RETURN")
+        gs.append(result)
+        result = tf.zeros_like(result)
+        for g in gs:
+            result += g
         return result,z_dim_random_uniform
 
 def discriminator(config, x, f,z,g,gz):

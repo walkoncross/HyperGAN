@@ -98,7 +98,7 @@ hc.set('e_batch_norm_last_layer', [False, True])
 hc.set('g_resnet_depth', [0])
 hc.set('g_resnet_filter', [3])
 
-hc.set('g_strategy', 'wide-resnet')
+hc.set('g_strategy', 'wide-resnet-lapgan')
 hc.set('g_huge_stride', [8])#[])
 hc.set('g_huge_filter', [9])
 
