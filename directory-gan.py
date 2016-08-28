@@ -99,9 +99,14 @@ hc.set('e_batch_norm_last_layer', [False, True])
 hc.set('g_resnet_depth', [0])
 hc.set('g_resnet_filter', [3])
 
-hc.set('g_strategy', 'wide-resnet')
+hc.set('g_strategy', 'densenet')
 hc.set('g_huge_stride', [8])#[])
 hc.set('g_huge_filter', [9])
+hc.set('g_densenet_k', 16)
+
+hc.set('d_densenet_k', 12)
+hc.set('d_densenet_block_depth', 3)
+hc.set('d_densenet_layers', 3)
 
 hc.set('g_atrous', [False])
 hc.set('g_atrous_filter', [3])
@@ -136,7 +141,7 @@ g_encode_layers = [[32, 64,128,256,512, 1024],
 if(args.test):
     g_encode_layers = [[10, 3, 3]]
 hc.set("g_encode_layers", g_encode_layers)
-hc.set("z_dim", list(np.arange(64,256)))
+hc.set("z_dim", list(np.arange(64,164)))
 
 hc.set('z_dim_random_uniform', 0)#list(np.arange(32,64)))
 
@@ -162,7 +167,7 @@ hc.set("g_encoder", [True])
 hc.set('d_linear_layer', [True])
 hc.set('d_linear_layers', list(np.arange(1024, 2048)))
 
-hc.set('d_architecture', ['wide_resnet'])
+hc.set('d_architecture', ['densenet'])
 
 hc.set("g_target_prob", list(np.linspace(.65 /2., .85 /2., num=100)))
 hc.set("d_label_smooth", list(np.linspace(0.15, 0.35, num=100)))

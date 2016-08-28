@@ -156,7 +156,7 @@ def build_deconv_config(layers,start, end):
     def get_option(i):
         return [get_layer(layer, i) for layer in range(layers)]
     #return [list(reversed(sorted(get_option(i)))) for i in np.arange(start, end)]
-    return [[1024, 128, 3]]
+    return [[512, 128, 3]]
 
 
 def build_atrous_layer(result, layer, filter, name='g_atrous'):
@@ -215,6 +215,49 @@ def get_minibatch_features(config, h,batch_size,dtype):
 
     return [f1, f2]
 
+
+def deconv_dense_block(result, k, activation, batch_size, id, name, output_channels=None):
+    if id == "layer":
+        identity = tf.identity(result)
+        result = batch_norm(batch_size, name=name+'bn')(result)
+        result = activation(result)
+        result = conv2d(result, k, name=name+'conv', k_w=3, k_h=3, d_h=1, d_w=1)
+        return tf.concat(3, [identity, result])
+
+    elif id == "transition":
+        s = [int(x) for x in result.get_shape()]
+        if(output_channels):
+            output_shape = [s[0], s[1]*2, s[2]*2,output_channels]
+        else:
+            output_shape = [s[0], s[1]*2, s[2]*2,s[3]//4]
+        result = batch_norm(batch_size, name=name+'bn')(result)
+        result = activation(result)
+        result = conv2d(result, s[3]//4*4, name=name+'id', k_w=1, k_h=1, d_h=1, d_w=1)
+        if(output_channels):
+            result = deconv2d(result, output_shape, name=name+'l', k_w=3, k_h=3, d_h=2, d_w=2)
+        else:
+            print(output_shape)
+            result = tf.reshape(result, output_shape)
+        return result
+ 
+
+def dense_block(result, k, activation, batch_size, id, name):
+    size = int(result.get_shape()[-1])
+    if(id=='layer'):
+        identity = tf.identity(result)
+        result = batch_norm(batch_size, name=name+'bn')(result)
+        result = activation(result)
+        result = conv2d(result, k, name=name+'conv', k_w=3, k_h=3, d_h=1, d_w=1)
+        
+        return tf.concat(3,[identity, result])
+    elif(id=='transition'):
+        result = batch_norm(batch_size, name=name+'bn')(result)
+        result = activation(result)
+        result = conv2d(result, size, name=name+'id', k_w=1, k_h=1, d_h=1, d_w=1)
+        filter = [1,2,2,1] #todo verify
+        stride = [1,2,2,1]
+        result = tf.nn.avg_pool(result, ksize=filter, strides=stride, padding='SAME')
+        return result
 
 def residual_block(result, activation, batch_size,id,name):
     size = int(result.get_shape()[-1])

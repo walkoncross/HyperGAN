@@ -79,6 +79,22 @@ def generator(config, inputs, reuse=False):
                 result = build_resnet(result, config['g_resnet_depth'], config['g_resnet_filter'], 'g_conv_res_', config['g_activation'], config['batch_size'], config['g_batch_norm'])
                 result = build_deconv_tower(result, config['conv_g_layers'][2:-1]+[output_channels], x_dims, config['g_post_res_filter'], 'g_conv_2', config['g_activation'], config['g_batch_norm'], config['g_batch_norm_last_layer'], config['batch_size'], config['g_last_layer_stddev'])
 
+            elif(config['g_strategy'] == 'densenet'):
+                k = config['g_densenet_k']
+                depth = 3
+                layers = 6
+                #result = deconv_dense_block(result, k, activation, batch_size, 'identity', 'g_layers_begin')
+                for i in range(layers):
+                    for j in range(depth):
+                        result = deconv_dense_block(result, k, activation, batch_size, 'layer', 'g_layers_'+str(i)+"_"+str(j))
+                    if i != layers-1:
+                        print("transition", result)
+                        result = deconv_dense_block(result, k, activation, batch_size, 'transition', 'g_layers_transition_'+str(i)+str(j))
+                    else:
+                        print("no transition", result)
+
+                result = deconv_dense_block(result, k, activation, batch_size, 'transition', 'g_layers_transition_end', output_channels=config['channels'])
+
         if(config['include_f_in_d']):
             rs = [int(s) for s in result.get_shape()]
             result1 = tf.slice(result,[0,0,0,0],[config['batch_size'], rs[1],rs[2],3])
@@ -86,11 +102,10 @@ def generator(config, inputs, reuse=False):
             result1 = config['g_last_layer'](result1)
             result2 = batch_norm(config['batch_size'], name='g_bn_relu_f')(result2)
             result2 = tf.nn.relu(result2)
-            result = tf.concat(3, [result1, result2])
+            result = tf.concat(2, [result1, result2])
         elif(config['g_last_layer']):
             result = config['g_last_layer'](result)
 
-        print("RETURN")
         return result,z_dim_random_uniform
 
 def discriminator(config, x, f,z,g,gz):
@@ -129,6 +144,8 @@ def discriminator(config, x, f,z,g,gz):
 
     if(config['d_architecture']=='wide_resnet'):
         result = discriminator_wide_resnet(config,x)
+    elif(config['d_architecture']=='densenet'):
+        result = discriminator_densenet(config,x)
     else:
         result = discriminator_vanilla(config,x)
 
@@ -221,6 +238,34 @@ def discriminator_wide_resnet(config, x):
     result = tf.reshape(result, [batch_size, -1])
 
     return result
+
+def discriminator_densenet(config, x):
+    activation = config['d_activation']
+    batch_size = int(x.get_shape()[0])
+    layers = config['d_densenet_layers']
+    depth = config['d_densenet_block_depth']
+    k = config['d_densenet_k']
+    result = x
+    result = conv2d(result, k, name='d_expand', k_w=3, k_h=3, d_h=1, d_w=1)
+    for i in range(layers):
+        for j in range(depth):
+            result = dense_block(result, k, activation, batch_size, 'layer', 'd_layers_'+str(i)+"_"+str(j))
+        if i != layers-1:
+            print("transition")
+            result = dense_block(result, k, activation, batch_size, 'transition', 'd_layers_transition_'+str(i)+str(j))
+        else:
+            print("no transition")
+
+    filter_size_w = int(result.get_shape()[1])
+    filter_size_h = int(result.get_shape()[2])
+    filter = [1,filter_size_w,filter_size_h,1]
+    stride = [1,filter_size_w,filter_size_h,1]
+    result = tf.nn.avg_pool(result, ksize=filter, strides=stride, padding='SAME')
+    print("RESULT SIZE IS", result)
+    result = tf.reshape(result, [batch_size, -1])
+
+    return result
+
 
 
 def discriminator_vanilla(config, x):
