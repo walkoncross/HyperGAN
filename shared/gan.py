@@ -83,6 +83,9 @@ def generator(config, inputs, reuse=False):
                 k = config['g_densenet_k']
                 depth = 3
                 layers = 6
+                result = batch_norm(batch_size, name='g_dense_bn1')(result)
+                result = activation(result)
+                result = conv2d(result, result.get_shape()[3], name='g_dense_id', k_w=1, k_h=1, d_h=1, d_w=1)
                 #result = deconv_dense_block(result, k, activation, batch_size, 'identity', 'g_layers_begin')
                 for i in range(layers):
                     for j in range(depth):

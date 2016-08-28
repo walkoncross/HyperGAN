@@ -69,7 +69,7 @@ hc.set("model", "40k_overfit:1.2")
 
 hc.set("optimizer", ['rmsprop'])
 
-hc.set('rmsprop_lr', list(np.linspace(8e-5, 8e-5)))
+hc.set('rmsprop_lr', list(np.linspace(1e-4, 1e-4)))
 hc.set('rmsprop_lr_g', list(np.linspace(1,2, num=10)))
 hc.set('simple_lr', list(np.linspace(0.01, 0.012, num=100)))
 hc.set('simple_lr_g', list(np.linspace(2,3, num=10)))
@@ -102,7 +102,7 @@ hc.set('g_resnet_filter', [3])
 hc.set('g_strategy', 'densenet')
 hc.set('g_huge_stride', [8])#[])
 hc.set('g_huge_filter', [9])
-hc.set('g_densenet_k', 16)
+hc.set('g_densenet_k', 8)
 
 hc.set('d_densenet_k', 12)
 hc.set('d_densenet_block_depth', 3)

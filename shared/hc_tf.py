@@ -222,22 +222,33 @@ def deconv_dense_block(result, k, activation, batch_size, id, name, output_chann
         result = batch_norm(batch_size, name=name+'bn')(result)
         result = activation(result)
         result = conv2d(result, k, name=name+'conv', k_w=3, k_h=3, d_h=1, d_w=1)
+        #s = identity.get_shape()
+        #output_shape = [s[0],s[1],s[2],k]
+        #result = deconv2d(result, output_shape, name=name+'deconv', k_w=3, k_h=3, d_h=1, d_w=1)
         return tf.concat(3, [identity, result])
 
     elif id == "transition":
         s = [int(x) for x in result.get_shape()]
         if(output_channels):
-            output_shape = [s[0], s[1]*2, s[2]*2,output_channels]
-        else:
-            output_shape = [s[0], s[1]*2, s[2]*2,s[3]//4]
-        result = batch_norm(batch_size, name=name+'bn')(result)
-        result = activation(result)
-        result = conv2d(result, s[3]//4*4, name=name+'id', k_w=1, k_h=1, d_h=1, d_w=1)
-        if(output_channels):
+            result = batch_norm(batch_size, name=name+'bn7')(result)
+            result = activation(result)
+            output_shape=[int(x) for x in result.get_shape()]
+            output_shape[1]*=2
+            output_shape[2]*=2
+            output_shape[3]=output_channels
             result = deconv2d(result, output_shape, name=name+'l', k_w=3, k_h=3, d_h=2, d_w=2)
+            #result = batch_norm(batch_size, name=name+'bn8')(result)
+            #result = activation(result)
+            #result = tf.tile(result, [1, 2, 2, 1])
+            #result = conv2d(result, output_channels, name=name+'id3', k_w=3, k_h=3, d_h=1, d_w=1)
         else:
-            print(output_shape)
-            result = tf.reshape(result, output_shape)
+            result = batch_norm(batch_size, name=name+'bn7')(result)
+            result = activation(result)
+            output_shape=[int(x) for x in result.get_shape()]
+            output_shape[1]*=2
+            output_shape[2]*=2
+            output_shape[3]=output_shape[3]//4
+            result = deconv2d(result, output_shape, name=name+'l', k_w=3, k_h=3, d_h=2, d_w=2)
         return result
  
 
