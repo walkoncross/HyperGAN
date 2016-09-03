@@ -66,20 +66,32 @@ def generator(config, inputs, reuse=False):
                 #stride = x_dims[0]//int(result.get_shape()[1])
                 #result = build_deconv_tower(result, [output_channels], x_dims, stride+1, 'g_conv_2', config['g_activation'], config['g_batch_norm'], config['g_batch_norm_last_layer'], config['batch_size'], config['g_last_layer_stddev'], stride=stride)
             elif(config['g_strategy'] == 'wide-resnet-lapgan'):
-                widenings = 2
-                stride = 8
+                widenings = 6
+                stride = 2
                 gs = []
                 for i in range(widenings):
                     rs = [int(s) for s in result.get_shape()]
                     g = tf.slice(result, [0,0,0,0], [batch_size, rs[1], rs[2], config['channels']])
-                    g = tf.image.resize_images(g, x_dims[1], x_dims[0], 1, True)
+                    #mask = tf.slice(result, [0,0,0,config['channels']], [batch_size, rs[1], rs[2], 1])
+                    #mask = tf.sigmoid(mask)
+                    #g *= mask
+                    g = tf.image.resize_images(g, x_dims[1], x_dims[0], config['g_lapgan_scale_strat'], True)
                     print("_____G", g)
-                    gs.append(config['g_last_layer'](g))
+                    gs.append(g)
                     print("SIZE IS" ,result)
 
                     if(i==widenings-1):
+                        cap = result 
                         result = residual_block_deconv(result, activation, batch_size, 'deconv', 'g_layers_d_'+str(i), output_channels=config['channels'], stride=stride)
                         result = residual_block_deconv(result, activation, batch_size, 'identity', 'g_layers_i_'+str(i))
+
+                        #mask = residual_block_deconv(cap, activation, batch_size, 'deconv', 'g_mask_layers_d_'+str(i), output_channels=len(gs), stride=stride)
+                        #mask = residual_block_deconv(mask, activation, batch_size, 'identity', 'g_mask_layers_i_'+str(i))
+                        #mask = tf.nn.sigmoid(mask)
+                        #for i in range(len(gs)):
+                            #m = tf.slice(mask, [0,0,0,i], [batch_size, x_dims[0], x_dims[1], 1]) 
+                            #gs[i] = gs[i] * m
+
                     else:
                         result = residual_block_deconv(result, activation, batch_size, 'deconv', 'g_layers_d_'+str(i), stride=stride)
                         result = residual_block_deconv(result, activation, batch_size, 'identity', 'g_layers_i_'+str(i))
@@ -105,13 +117,13 @@ def generator(config, inputs, reuse=False):
             result2 = batch_norm(config['batch_size'], name='g_bn_relu_f')(result2)
             result2 = tf.nn.relu(result2)
             result = tf.concat(3, [result1, result2])
-        elif(config['g_last_layer']):
-            result = config['g_last_layer'](result)
 
         gs.append(result)
         result = tf.zeros_like(result)
         for g in gs:
             result += g
+        result = config['g_last_layer'](result)
+
         return result,z_dim_random_uniform
 
 def discriminator(config, x, f,z,g,gz):
