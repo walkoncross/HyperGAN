@@ -41,7 +41,7 @@ def generator(config, inputs, reuse=False):
 
                 noise = tf.random_uniform([config['batch_size'],32],-1, 1,dtype=config['dtype'])
                 result = tf.concat(1, [result, noise])
-            primes = [8,8]
+            primes = [8,5]
             z_proj_dims = 1*1*512
             result = linear(result, z_proj_dims*primes[0]*primes[1], scope="g_lin_proj")
         elif(config['g_project']=='tiled'):
@@ -130,7 +130,7 @@ def generator(config, inputs, reuse=False):
             elif(config['g_strategy'] == 'wide-resnet'):
                 #result = residual_block_deconv(result, activation, batch_size, 'widen', 'g_layers_p')
                 #result = residual_block_deconv(result, activation, batch_size, 'identity', 'g_layers_i1')
-                widenings = 6
+                widenings = 5
                 stride = 2
                 zs = [None]
                 h = int(result.get_shape()[1])
@@ -641,6 +641,7 @@ def create(config, x,y,f):
     else:
         categories_t = []
 
+    print("CATEGORIES", categories_t)
     g,z_dim_random_uniform = generator(config, [y, z]+categories_t)
     #g = generator(config, [y, z]+categories_t)
     set_tensor('z_dim_random_uniform', z_dim_random_uniform)
