@@ -176,7 +176,7 @@ hc.set("g_encoder", [True])
 
 hc.set('minibatch', 'openai-smallest-image')
 hc.set('d_linear_layer', [True])
-hc.set('d_linear_layers', 128)#list(np.arange(256,512)))
+hc.set('d_linear_layers', 512)#list(np.arange(256,512)))
 
 hc.set('d_architecture', ['pyramid'])
 
