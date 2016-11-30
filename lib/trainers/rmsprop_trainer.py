@@ -8,8 +8,8 @@ def initialize(config, d_vars, g_vars):
     d_lr = np.float32(config['trainer.rmsprop.discriminator.lr'])
     g_lr = np.float32(config['trainer.rmsprop.generator.lr'])
 
-    g_optimizer = tf.train.RMSPropOptimizer(g_lr).minimize(g_loss, var_list=g_vars)
-    d_optimizer = tf.train.RMSPropOptimizer(d_lr).minimize(d_loss, var_list=d_vars)
+    g_optimizer = capped_optimizer(tf.train.RMSPropOptimizer, g_lr, g_loss, g_vars)
+    d_optimizer = capped_optimizer(tf.train.RMSPropOptimizer, d_lr, d_loss, d_vars)
     return g_optimizer, d_optimizer
 
 iteration = 0
