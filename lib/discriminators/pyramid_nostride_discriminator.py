@@ -9,14 +9,13 @@ def discriminator(config, x, g, xs, gs):
     depth_increase = config['discriminator.pyramid.depth_increase']
     depth = config['discriminator.pyramid.layers']
     batch_norm = config['generator.regularizers.layer']
-    batch_norm = batch_norm_1
     net = x
     net = conv2d(net, 16, name='d_expand', k_w=3, k_h=3, d_h=1, d_w=1)
 
     xgs = []
     xgs_conv = []
     for i in range(depth):
-      net = batch_norm(config['batch_size']*2, name='d_expand_bn_'+str(i))(net)
+      #net = batch_norm(config['batch_size']*2, name='d_expand_bn_'+str(i))(net)
       net = activation(net)
       # APPEND xs[i] and gs[i]
       if(i < len(xs) and i > 0):
@@ -26,7 +25,7 @@ def discriminator(config, x, g, xs, gs):
         xgs.append(xg)
 
         mxg = conv2d(xg, 6*(i), name="d_add_xg"+str(i), k_w=3, k_h=3, d_h=1, d_w=1)
-        mxg = batch_norm(config['batch_size'], name='d_add_xg_bn_'+str(i))(mxg)
+        #mxg = batch_norm(config['batch_size'], name='d_add_xg_bn_'+str(i))(mxg)
         mxg = activation(mxg)
 
         xgs_conv.append(mxg)
@@ -43,15 +42,15 @@ def discriminator(config, x, g, xs, gs):
       print('Discriminator pyramid layer:', net)
 
     k=-1
-    net = batch_norm(config['batch_size']*2, name='d_expand_bn_end_'+str(i))(net)
+    #net = batch_norm(config['batch_size']*2, name='d_expand_bn_end_'+str(i))(net)
     net = activation(net)
     net = tf.reshape(net, [batch_size, -1])
-    net = linear(net, int(1024*1.5), scope="d_fc_end1")
-    net = batch_norm(config['batch_size']*2, name='d_bn_end1')(net)
-    net = activation(net)
-    net = linear(net, 1024, scope="d_fc_end2")
-    net = batch_norm(config['batch_size']*2, name='d_bn_end2')(net)
-    net = activation(net)
+    #net = linear(net, int(1024*1.5), scope="d_fc_end1")
+    #net = batch_norm(config['batch_size']*2, name='d_bn_end1')(net)
+    #net = activation(net)
+    #net = linear(net, 1024, scope="d_fc_end2")
+    #net = batch_norm(config['batch_size']*2, name='d_bn_end2')(net)
+    #net = activation(net)
  
     return net
 
