@@ -103,7 +103,7 @@ def discriminator(config, x, f,z,g,gz):
     #net = tf.reshape(net,  [config['batch_size']*2, 1])
 
     #net = tf.reshape(net, [config['batch_size']*2, -1])
-    net = linear(net, 1, scope="d_proj", stddev=0.03)
+    net = linear(net, 1, scope="d_proj", stddev=0.003)
     net = tf.reshape(net,  [config['batch_size']*2, 1])
 #
     class_logits = net
