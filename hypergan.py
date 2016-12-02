@@ -91,7 +91,7 @@ hc.set("trainer.sgd_adam.discriminator.lr", 3e-4) # d learning rate
 hc.set("trainer.sgd_adam.generator.lr", 1e-3) # g learning rate
 
 # Discriminator configuration
-hc.set("discriminator", pyramid_nostride_discriminator.discriminator)
+hc.set("discriminator", pyramid_discriminator.discriminator)
 hc.set("discriminator.activation", [tf.nn.elu, tf.nn.relu, tf.nn.relu6, lrelu]);
 
 hc.set('discriminator.fc_layer', [False]) #If true, include a fully connected layer at the end of the discriminator
