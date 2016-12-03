@@ -16,6 +16,7 @@ def generator(config, net):
     batch_size = config['batch_size']
     depth_reduction = np.float32(config['generator.resize_conv.depth_reduction'])
     batch_norm = config['generator.regularizers.layer']
+    batch_norm = batch_norm_1
 
     s = [int(x) for x in net.get_shape()]
     net = block_conv(net, activation, batch_size, 'identity', 'g_layers_init', output_channels=int(net.get_shape()[3]), filter=3, use_batch_norm=False, batch_norm=batch_norm)
@@ -36,7 +37,7 @@ def generator(config, net):
             fltr=int(net.get_shape()[1])
         if fltr > net.get_shape()[2]:
             fltr=int(net.get_shape()[2])
-        net = block_conv(net, activation, batch_size, 'identity', 'g_layers_'+str(i), output_channels=layers, filter=fltr, use_batch_norm=False, batch_norm=batch_norm, noise_shape=noise)
+        net = block_conv(net, activation, batch_size, 'identity', 'g_layers_'+str(i), output_channels=layers, filter=fltr, use_batch_norm=True, batch_norm=batch_norm, noise_shape=noise)
         first3 = tf.slice(net, [0,0,0,0], [-1,-1,-1,3])
         first3 = config['generator.final_activation'](first3)
         nets.append(first3)
