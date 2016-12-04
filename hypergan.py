@@ -56,7 +56,7 @@ hc.set('dtype', tf.float32) #The data type to use in our GAN.  Only float32 is s
 
 # Generator configuration
 hc.set("generator", resize_conv.generator)
-hc.set("generator.z", 2) # the size of the encoding.  Encoder is set by the 'encoder' property, but could just be a random_uniform
+hc.set("generator.z", 64) # the size of the encoding.  Encoder is set by the 'encoder' property, but could just be a random_uniform
 hc.set("generator.z_projection_depth", 2048) # Used in the first layer - the linear projection of z
 hc.set("generator.activation", [prelu("g_")]); # activation function used inside the generator
 hc.set("generator.activation.end", [tf.nn.tanh]); # Last layer of G.  Should match the range of your input - typically -1 to 1
@@ -172,11 +172,13 @@ hc.set("d_project", ['tiled'])
 
 hc.set("batch_size", args.batch)
 
+gz = None
 def sample_grid(sample_file, sess, config):
     generator = get_tensor("g")[0]
     y_t = get_tensor("y")
     z_t = get_tensor("z")
     dropout_t = get_tensor("dropout")
+    global gz
 
 
     x = np.linspace(0,1, 4)
@@ -186,13 +188,17 @@ def sample_grid(sample_file, sess, config):
     #z = np.mgrid[-3:3:0.6*3, -3:3:0.38*3].reshape(2,-1).T
     #z = np.mgrid[-6:6:0.6*6, -6:6:0.38*6].reshape(2,-1).T
 
-    z = np.mgrid[-1:1:0.6, -1:1:0.38].reshape(2,-1).T
+    #z = np.mgrid[-1:1:0.6, -1:1:0.38].reshape(24,-1).T
     #z = np.square(1/z) * np.sign(z)
     #z = np.mgrid[0:1000:300, 0:1000:190].reshape(2,-1).T
     #z = np.mgrid[-0:1:0.3, 0:1:0.19].reshape(2,-1).T
     #z = np.mgrid[0.25:-0.25:-0.15, 0.25:-0.25:-0.095].reshape(2,-1).T
     #z = np.mgrid[-0.125:0.125:0.075, -0.125:0.125:0.095/2].reshape(2,-1).T
-    #z = np.zeros(z_t.get_shape())
+    if gz == None:
+        z = np.random.uniform(-1, 1, size=z_t.get_shape())
+        gz = z
+    else:
+        z = gz
     #z.fill(0.2)
 
 
@@ -212,8 +218,9 @@ def epoch(sess, config):
     global batch_no
     for i in range(total_batch):
         d_loss, g_loss = config['trainer.train'](sess, config)
-        sample_file="samples/grid-%06d.png" % (batch_no * total_batch + i)
-        sample_grid(sample_file, sess, config)
+        if i % 10 == 9:
+            sample_file="samples/grid-%06d.png" % (batch_no * total_batch + i)
+            sample_grid(sample_file, sess, config)
 
         #if(i > 10):
         #    if(math.isnan(d_loss) or math.isnan(g_loss) or g_loss > 1000 or d_loss > 1000):
