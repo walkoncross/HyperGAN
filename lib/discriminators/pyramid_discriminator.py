@@ -43,6 +43,11 @@ def discriminator(config, x, g, xs, gs):
 
     print('Discriminator pyramid layer:', net)
     k=-1
+    filter_size_w = 2
+    filter_size_h = 2
+    filter = [1,filter_size_w,filter_size_h,1]
+    stride = [1,filter_size_w,filter_size_h,1]
+    net = tf.nn.avg_pool(net, ksize=filter, strides=stride, padding='SAME')
     net = batch_norm(config['batch_size']*2, name='d_expand_bn_end_'+str(i))(net)
     net = activation(net)
     net = tf.reshape(net, [batch_size, -1])
