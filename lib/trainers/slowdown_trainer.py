@@ -14,8 +14,8 @@ def initialize(config, d_vars, g_vars):
     d_lr = tf.get_variable('lr', [], trainable=False, initializer=tf.constant_initializer(d_lr,dtype=config['dtype']),dtype=config['dtype'])
     set_tensor("lr", d_lr)
 
-    g_optimizer = tf.train.AdamOptimizer(g_lr, beta1=g_beta1, beta2=g_beta2, epsilon=g_epsilon).minimize(g_loss, var_list=g_vars)
-    d_optimizer = tf.train.AdamOptimizer(d_lr).minimize(d_loss, var_list=d_vars)
+    g_optimizer = capped_optimizer(tf.train.AdamOptimizer,g_lr, g_loss, g_vars)
+    d_optimizer = tf.train.RMSPropOptimizer(d_lr).minimize(d_loss, var_list=d_vars)
     return g_optimizer, d_optimizer
 
 iteration = 0
@@ -42,15 +42,10 @@ def train(sess, config):
     bounds_min = config['trainer.slowdown.discriminator.d_fake_min']
     bounds_slow = config['trainer.slowdown.discriminator.slowdown']
     max_lr = config['trainer.rmsprop.discriminator.lr']
-    if(d_fake < bounds_min):
-        slowdown = 1/(bounds_slow)
-    elif(d_fake > bounds_max):
-        slowdown = 1
+    if(g_cost > 0.6):
+        slowdown = 0.1
     else:
-        percent = 1 - (d_fake - bounds_min)/(bounds_max-bounds_min)
-        slowdown = 1/(percent * bounds_slow + TINY)
-        if(slowdown > 1):
-            slowdown=1
+        slowdown=1
     new_lr = max_lr*slowdown
     set_tensor("lr_value", new_lr)
 
