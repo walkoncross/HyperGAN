@@ -42,7 +42,7 @@ def train(sess, config):
     bounds_min = config['trainer.slowdown.discriminator.d_fake_min']
     bounds_slow = config['trainer.slowdown.discriminator.slowdown']
     max_lr = config['trainer.rmsprop.discriminator.lr']
-    if(g_cost > 0.6):
+    if(g_cost > 0.4 or d_fake < 0.08):
         slowdown = 0.1
     else:
         slowdown=1

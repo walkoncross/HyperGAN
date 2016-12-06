@@ -103,7 +103,8 @@ def discriminator(config, x, f,z,g,gz):
     #net = tf.reshape(net,  [config['batch_size']*2, 1])
 
     #net = tf.reshape(net, [config['batch_size']*2, -1])
-    net = linear(net, 2, scope="d_proj", stddev=0.001)
+    num_classes = config['y_dims']+1
+    net = linear(net, num_classes, scope="d_proj", stddev=0.002)
     #net = tf.reshape(net,  [config['batch_size']*2, 1])
 #
     #class_logits = net
@@ -134,7 +135,6 @@ def discriminator(config, x, f,z,g,gz):
         assert len(gan_logits.get_shape()) == 1
 
         return class_logits, gan_logits
-    num_classes = config['y_dims']+1
     class_logits, gan_logits = build_logits(net, num_classes)
     return [tf.slice(class_logits, [0, 0], [single_batch_size, num_classes-1]),
                 tf.slice(gan_logits, [0], [single_batch_size]),
