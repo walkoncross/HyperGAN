@@ -97,7 +97,7 @@ def discriminator(config, x, f,z,g,gz):
     net = tf.concat(1, [net]+regularizers)
 
     #net = conv2d(net, net.get_shape()[3], name='d_endd3', k_w=1, k_h=1, d_h=1, d_w=1, stddev=0.4)
-    #net = batch_norm(config['batch_size'], name='d_expand_bn_end')(net)
+    net = batch_norm_1(config['batch_size']*2, name='d_expand_bn_end')(net)
     #net = tf.reshape(net, [config['batch_size']*2, -1])
     #net = tf.reduce_mean(net, 1)
     #net = tf.reshape(net,  [config['batch_size']*2, 1])

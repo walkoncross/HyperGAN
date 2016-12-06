@@ -62,7 +62,7 @@ hc.set("generator.activation.end", [tf.nn.tanh]); # Last layer of G.  Should mat
 hc.set("generator.fully_connected_layers", 0) # Experimental - This should probably stay 0
 hc.set("generator.final_activation", [tf.nn.tanh]) #This should match the range of your input
 hc.set("generator.resize_conv.depth_reduction", 2) # Divides our depth by this amount every time we go up in size
-hc.set("generator.regularizers", [[l2_regularizer.get]]) # These are added to the loss function for G.
+hc.set("generator.regularizers", [[]]) # These are added to the loss function for G.
 hc.set('generator.layer.noise', False) #Adds incremental noise each layer
 hc.set("generator.regularizers.l2.lambda", list(np.linspace(0.1, 1, num=30))) # the magnitude of the l2 regularizer(experimental)
 hc.set("generator.regularizers.layer", layer_norm_1) # the magnitude of the l2 regularizer(experimental)
@@ -78,11 +78,11 @@ hc.set("trainer.adam.discriminator.lr", 1e-3) #adam_trainer d learning rate
 hc.set("trainer.adam.discriminator.epsilon", 1e-8) #adam epsilon for d
 hc.set("trainer.adam.discriminator.beta1", 0.9) #adam beta1 for d
 hc.set("trainer.adam.discriminator.beta2", 0.999) #adam beta2 for d
-hc.set("trainer.adam.generator.lr", 1e-3) #adam_trainer g learning rate
+hc.set("trainer.adam.generator.lr", 1e-4) #adam_trainer g learning rate
 hc.set("trainer.adam.generator.epsilon", 1e-8) #adam_trainer g
 hc.set("trainer.adam.generator.beta1", 0.9) #adam_trainer g
 hc.set("trainer.adam.generator.beta2", 0.999) #adam_trainer g
-hc.set("trainer.rmsprop.discriminator.lr", 1e-5) # d learning rate
+hc.set("trainer.rmsprop.discriminator.lr", 1e-4) # d learning rate
 hc.set("trainer.rmsprop.generator.lr", 1e-4) # d learning rate
 hc.set('trainer.slowdown.discriminator.d_fake_min', [0.12]) # healthy above this number on d_fake
 hc.set('trainer.slowdown.discriminator.d_fake_max', [0.12001]) # unhealthy below this number on d_fake
