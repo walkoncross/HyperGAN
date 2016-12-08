@@ -96,8 +96,10 @@ def discriminator(config, x, f,z,g,gz):
 
     net = tf.concat(1, [net]+regularizers)
 
-    #net = conv2d(net, net.get_shape()[3], name='d_endd3', k_w=1, k_h=1, d_h=1, d_w=1, stddev=0.4)
+    net = linear(net, 1024, scope="d_post_linear", stddev=0.002)
     net = batch_norm_1(config['batch_size']*2, name='d_expand_bn_end')(net)
+    net = activation(net)
+    #net = conv2d(net, net.get_shape()[3], name='d_endd3', k_w=1, k_h=1, d_h=1, d_w=1, stddev=0.4)
     #net = tf.reshape(net, [config['batch_size']*2, -1])
     #net = tf.reduce_mean(net, 1)
     #net = tf.reshape(net,  [config['batch_size']*2, 1])
@@ -107,13 +109,13 @@ def discriminator(config, x, f,z,g,gz):
     net = linear(net, num_classes, scope="d_proj", stddev=0.002)
     #net = tf.reshape(net,  [config['batch_size']*2, 1])
 #
-    #class_logits = net
-    #gan_logits = net
-    #return [tf.slice(class_logits, [0, 0], [single_batch_size, 1]),
-    #            tf.slice(gan_logits, [0,0], [single_batch_size,1]),
-    #            tf.slice(class_logits, [single_batch_size, 0], [single_batch_size, 1]),
-    #            tf.slice(gan_logits, [single_batch_size,0], [single_batch_size,1]),
-    #            last_layer]
+    class_logits = net
+    gan_logits = net
+    return [tf.slice(class_logits, [0, 0], [single_batch_size, 1]),
+                tf.slice(gan_logits, [0,0], [single_batch_size,1]),
+                tf.slice(class_logits, [single_batch_size, 0], [single_batch_size, 1]),
+                tf.slice(gan_logits, [single_batch_size,0], [single_batch_size,1]),
+                last_layer]
 #
 #
     def build_logits(class_logits, num_classes):
